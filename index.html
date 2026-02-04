@@ -1,116 +1,967 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پنل مدیریت ربات</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            background-color: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
-            font-family: sans-serif;
-            padding: 20px;
-            text-align: center;
-        }
-        .card {
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .btn {
-            background-color: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #fff);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .toggle-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        h2 { margin-top: 0; }
-        #debug { font-size: 12px; color: gray; margin-top: 20px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin WebApp Dashboard (Telegram)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0f1a;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
+      --stroke: rgba(255,255,255,0.12);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --brand: #7c3aed;
+      --brand2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --shadow: 0 18px 50px rgba(0,0,0,0.35);
+      --radius: 18px;
+    }
+    *{ font-family: Vazirmatn, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body{
+      background:
+        radial-gradient(1000px 500px at 80% -10%, rgba(124,58,237,0.25), transparent 60%),
+        radial-gradient(900px 500px at 10% 0%, rgba(34,197,94,0.18), transparent 55%),
+        radial-gradient(1200px 800px at 50% 120%, rgba(59,130,246,0.12), transparent 60%),
+        var(--bg);
+      color: var(--text);
+    }
+    .glass{
+      background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      backdrop-filter: blur(10px);
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+    }
+    .chip{
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+    }
+    .btn{
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      transition: transform .06s ease, background .2s ease;
+    }
+    .btn:active{ transform: scale(0.99); }
+    .btn-primary{
+      background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(59,130,246,0.85));
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-danger{
+      background: linear-gradient(135deg, rgba(239,68,68,0.9), rgba(244,63,94,0.75));
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-success{
+      background: linear-gradient(135deg, rgba(34,197,94,0.95), rgba(16,185,129,0.75));
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-warn{
+      background: linear-gradient(135deg, rgba(245,158,11,0.95), rgba(234,179,8,0.75));
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    /* Neo toggle */
+    .toggle{
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+      position: relative;
+      cursor: pointer;
+      transition: background .2s ease;
+      flex: 0 0 auto;
+    }
+    .toggle::after{
+      content:"";
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      position:absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(255,255,255,0.88);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .toggle[data-on="true"]{
+      background: rgba(34,197,94,0.25);
+      border-color: rgba(34,197,94,0.55);
+    }
+    .toggle[data-on="true"]::after{
+      transform: translateX(-22px);
+      background: rgba(34,197,94,0.95);
+    }
+
+    .input{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      color: var(--text);
+      outline: none;
+    }
+    .input::placeholder{ color: rgba(255,255,255,0.45); }
+
+    .tab{
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.75);
+    }
+    .tab[aria-selected="true"]{
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.92);
+      border-color: rgba(255,255,255,0.22);
+    }
+
+    .toast{
+      position: fixed;
+      inset-inline: 14px;
+      bottom: 14px;
+      z-index: 50;
+      display: none;
+    }
+    .toast.show{ display: block; }
+
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    /* Smaller scrollbars */
+    ::-webkit-scrollbar{ width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.12); border-radius: 999px; }
+    ::-webkit-scrollbar-track{ background: transparent; }
+  </style>
 </head>
 <body>
+  <div class="max-w-[980px] mx-auto p-4 pb-28">
 
-    <div id="main-content">
-        <h2>🎛 تنظیمات ربات</h2>
-        
-        <div class="card">
-            <div class="toggle-row">
-                <span>🤖 یوزربات فعال</span>
-                <input type="checkbox" id="userbot_active" onchange="sendUpdate('userbot_active', this.checked)">
+    <!-- Header -->
+    <header class="glass p-4 sm:p-5 flex items-start justify-between gap-4">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-lg sm:text-xl font-semibold">داشبورد مدیریت ربات</h1>
+          <span class="chip px-3 py-1 text-xs text-white/80">Telegram WebApp</span>
+          <span id="envBadge" class="chip px-3 py-1 text-xs text-white/70 hidden"></span>
+        </div>
+        <p class="text-sm text-white/60 mt-1 leading-6">
+          این پنل فقط برای ادمین است. <span class="text-white/80">initData</span> به بک‌اند ارسال می‌شود تا امضا توسط Bot Token بررسی شود.
+        </p>
+      </div>
+
+      <div class="flex flex-col items-end gap-2">
+        <div class="text-xs text-white/60">Admin ID</div>
+        <div class="mono text-sm text-white/85" id="adminIdLabel">—</div>
+      </div>
+    </header>
+
+    <!-- Access gate -->
+    <section id="accessDenied" class="mt-4 glass p-5 hidden">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-red-500/20 border border-red-500/30 flex items-center justify-center">⛔</div>
+        <div>
+          <h2 class="font-semibold">Access Denied</h2>
+          <p class="text-sm text-white/65 mt-1 leading-7">
+            شما مجاز به دسترسی به این پنل نیستید.
+          </p>
+          <div class="mt-3 text-sm">
+            <div class="text-white/60">Your user.id:</div>
+            <div class="mono text-white/85" id="deniedUid">—</div>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button class="btn px-4 py-2 text-sm" id="btnClose">بستن</button>
+            <button class="btn btn-warn px-4 py-2 text-sm" id="btnHowItWorks">راهنما</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main app -->
+    <main id="app" class="mt-4 hidden">
+
+      <!-- Tabs -->
+      <nav class="flex gap-2 flex-wrap">
+        <button class="tab px-4 py-2 text-sm" role="tab" data-tab="dashboard" aria-selected="true">داشبورد</button>
+        <button class="tab px-4 py-2 text-sm" role="tab" data-tab="settings">تنظیمات</button>
+        <button class="tab px-4 py-2 text-sm" role="tab" data-tab="users">کاربران</button>
+        <button class="tab px-4 py-2 text-sm" role="tab" data-tab="docs">مستندات</button>
+      </nav>
+
+      <!-- Dashboard -->
+      <section class="mt-4" data-panel="dashboard">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div class="card p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-white/60">وضعیت ربات</div>
+                <div class="mt-1 flex items-center gap-2">
+                  <span id="statusDot" class="inline-block w-2.5 h-2.5 rounded-full bg-white/20"></span>
+                  <span id="statusText" class="font-semibold">—</span>
+                </div>
+                <div id="statusMeta" class="text-xs text-white/55 mt-2 leading-6"></div>
+              </div>
+              <button class="btn btn-primary px-4 py-2 text-sm" id="btnRefreshStatus">بروزرسانی</button>
             </div>
-            <div class="toggle-row">
-                <span>🛠 حالت تعمیرات</span>
-                <input type="checkbox" id="maintenance_mode" onchange="sendUpdate('maintenance_mode', this.checked)">
+          </div>
+
+          <div class="card p-4">
+            <div class="text-sm text-white/60">اتصال به بک‌اند</div>
+            <div class="mt-2 flex gap-2">
+              <input id="apiBase" class="input px-4 py-2 w-full text-sm" placeholder="API Base (اختیاری) مثلا: https://your-domain" />
+              <button class="btn px-4 py-2 text-sm" id="btnSaveApiBase">ذخیره</button>
             </div>
-            <div class="toggle-row">
-                <span>🔕 حالت بیصدا</span>
-                <input type="checkbox" id="silent_mode" onchange="sendUpdate('silent_mode', this.checked)">
+            <div class="text-xs text-white/55 mt-2 leading-6">
+              اگر WebApp و API روی یک دامنه هستند، این فیلد را خالی بگذارید.
             </div>
+          </div>
         </div>
 
-        <button class="btn" onclick="sendAction('restart')">🔄 ریستارت ربات</button>
-        <button class="btn" style="background-color: #e53935; margin-top: 10px;" onclick="tg.close()">❌ بستن پنل</button>
+        <div class="mt-3 grid lg:grid-cols-3 gap-3">
+          <div class="card p-4 lg:col-span-2">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <div class="text-sm text-white/60">Feature Toggles</div>
+                <div class="text-xs text-white/55 mt-1">فعال/غیرفعال کردن قابلیت‌ها (نیازمند بک‌اند)</div>
+              </div>
+              <button class="btn px-4 py-2 text-sm" id="btnLoadSettings">بارگذاری</button>
+            </div>
+
+            <div class="space-y-3" id="toggleList">
+              <!-- filled by JS -->
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button class="btn btn-success px-4 py-2 text-sm" id="btnSaveToggles">ذخیره تغییرات</button>
+              <button class="btn px-4 py-2 text-sm" id="btnResetToggles">بازنشانی</button>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <div class="text-sm text-white/60">اقدامات سریع</div>
+            <div class="mt-3 space-y-2">
+              <button class="btn px-4 py-3 w-full text-sm" id="btnPing">Ping API</button>
+              <button class="btn btn-warn px-4 py-3 w-full text-sm" id="btnOpenDocs">HTTPS + Cloudflare</button>
+              <button class="btn btn-danger px-4 py-3 w-full text-sm" id="btnCloseWebApp">بستن WebApp</button>
+            </div>
+            <div class="text-xs text-white/55 mt-3 leading-6">
+              تمام درخواست‌ها باید شامل initData باشند. بک‌اند باید امضای Telegram را با Bot Token اعتبارسنجی کند.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="mt-4 hidden" data-panel="settings">
+        <div class="grid lg:grid-cols-2 gap-3">
+          <div class="card p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm text-white/60">تنظیمات ربات</div>
+                <div class="text-xs text-white/55 mt-1">نمونه فیلدها — بک‌اند باید ذخیره کند</div>
+              </div>
+              <button class="btn px-4 py-2 text-sm" id="btnLoadBotSettings">بارگذاری</button>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <label class="block">
+                <div class="text-xs text-white/60 mb-1">Welcome Message</div>
+                <textarea id="welcomeMessage" rows="4" class="input px-4 py-3 w-full text-sm" placeholder="پیام خوش‌آمد"></textarea>
+              </label>
+
+              <label class="block">
+                <div class="text-xs text-white/60 mb-1">Default Daily Limit</div>
+                <input id="defaultDaily" type="number" min="0" class="input px-4 py-2 w-full text-sm" placeholder="مثلا 10" />
+              </label>
+
+              <label class="block">
+                <div class="text-xs text-white/60 mb-1">Default Size Limit (MB)</div>
+                <input id="defaultSize" type="number" min="0" class="input px-4 py-2 w-full text-sm" placeholder="مثلا 500" />
+              </label>
+
+              <div class="pt-2">
+                <button class="btn btn-primary px-4 py-3 w-full text-sm" id="btnSaveBotSettings">ذخیره تنظیمات</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <div class="text-sm text-white/60">امنیت و احراز هویت</div>
+            <div class="mt-3 text-xs text-white/55 leading-6">
+              <ul class="list-disc list-inside space-y-1">
+                <li>Bot Token هرگز نباید در Frontend باشد.</li>
+                <li>Frontend فقط initData را ارسال می‌کند.</li>
+                <li>Backend باید initData را با Bot Token verify کند.</li>
+                <li>درخواست‌های بدون initData باید رد شوند.</li>
+              </ul>
+            </div>
+
+            <div class="mt-5">
+              <div class="text-sm text-white/60">تغییر رمز /unlock (نمونه)</div>
+              <div class="text-xs text-white/55 mt-1">این فیلد را فقط به بک‌اند ارسال کنید (بک‌اند ذخیره می‌کند).</div>
+              <div class="mt-3 flex gap-2">
+                <input id="newPassword" type="password" class="input px-4 py-2 w-full text-sm" placeholder="New password" />
+                <button class="btn btn-warn px-4 py-2 text-sm" id="btnResetPassword">Reset</button>
+              </div>
+              <div class="text-xs text-white/55 mt-2">بهترین کار: بک‌اند این عملیات را فقط برای ادمین مجاز کند.</div>
+            </div>
+
+            <div class="mt-6">
+              <div class="text-sm text-white/60">Telegram initData</div>
+              <div class="mt-2 p-3 rounded-xl border border-white/10 bg-white/5">
+                <div class="text-xs text-white/55">برای دیباگ (در دستگاه شما)</div>
+                <div class="mono text-xs text-white/75 mt-2 break-all" id="initDataPreview">—</div>
+              </div>
+              <div class="text-xs text-white/45 mt-2">نکته: نمایش initData فقط برای دیباگ است؛ در محیط واقعی بهتر است مخفی باشد.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Users -->
+      <section class="mt-4 hidden" data-panel="users">
+        <div class="card p-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div class="text-sm text-white/60">مدیریت کاربران</div>
+              <div class="text-xs text-white/55 mt-1">لیست کاربران + بلاک/آنبلاک/حذف</div>
+            </div>
+            <div class="flex gap-2">
+              <button class="btn px-4 py-2 text-sm" id="btnLoadUsers">بارگذاری</button>
+              <button class="btn px-4 py-2 text-sm" id="btnRefreshUsers">Refresh</button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row gap-2">
+            <input id="userSearch" class="input px-4 py-2 w-full text-sm" placeholder="جستجو با id یا username..." />
+            <button class="btn px-4 py-2 text-sm" id="btnClearSearch">پاک کردن</button>
+          </div>
+
+          <div class="mt-4 space-y-2" id="usersList"></div>
+
+          <div class="mt-4 text-xs text-white/55 leading-6">
+            نکته: عملیات‌های بلاک/آنبلاک/حذف باید در بک‌اند انجام شود و صرفاً برای ادمین اجازه داده شود.
+          </div>
+        </div>
+      </section>
+
+      <!-- Docs -->
+      <section class="mt-4 hidden" data-panel="docs">
+        <div class="card p-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <div class="text-sm text-white/60">مستندات راه‌اندازی (Termux + Cloudflare Tunnel)</div>
+              <div class="text-xs text-white/55 mt-1">HTTPS الزامی است — HTTP و file:// کار نمی‌کند</div>
+            </div>
+            <button class="btn px-4 py-2 text-sm" id="btnCopyDocs">کپی خلاصه</button>
+          </div>
+
+          <div class="mt-4 space-y-4 text-sm text-white/75 leading-8" id="docsText">
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+              <div class="font-semibold text-white/90">1) الزام HTTPS</div>
+              <div class="mt-1">
+                Telegram Web Apps فقط روی <span class="font-semibold">HTTPS</span> لود می‌شوند.
+                بنابراین از <span class="mono">http://</span> یا <span class="mono">file://</span> استفاده نکنید.
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+              <div class="font-semibold text-white/90">2) معماری پیشنهادی</div>
+              <ul class="list-disc list-inside mt-2 space-y-1">
+                <li>Frontend: همین <span class="mono">index.html</span> (WebApp)</li>
+                <li>Backend: FastAPI روی Termux (Verify initData با Bot Token)</li>
+                <li>Expose: Cloudflare Tunnel (cloudflared) برای HTTPS</li>
+              </ul>
+            </div>
+
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+              <div class="font-semibold text-white/90">3) نمونه فرمت درخواست‌ها (FastAPI)</div>
+              <div class="text-xs text-white/55 mt-2">این کد نمونه کامل نیست؛ فقط فرمت مورد انتظار Frontend را نشان می‌دهد.</div>
+              <pre class="mono text-xs mt-3 whitespace-pre-wrap bg-black/40 p-3 rounded-xl border border-white/10"># Backend sample (FastAPI) — runs in Termux
+# IMPORTANT: verify initData using bot token (HMAC SHA256)
+
+GET  /status
+Headers:
+  X-Tg-Init-Data: &lt;Telegram.WebApp.initData&gt;
+
+GET  /users
+Headers:
+  X-Tg-Init-Data: &lt;initData&gt;
+
+POST /settings
+Body (JSON):
+{
+  "initData": "&lt;initData&gt;",
+  "settings": {
+    "messenger_enabled": true,
+    "downloader_enabled": true,
+    "uploader_enabled": true,
+    "maintenance_mode": false,
+    "welcome_message": "...",
+    "default_daily_limit": 10,
+    "default_size_limit_mb": 500
+  }
+}
+
+POST /users/block
+Body:
+{ "initData": "&lt;initData&gt;", "user_id": 123 }
+
+POST /users/unblock
+Body:
+{ "initData": "&lt;initData&gt;", "user_id": 123 }</pre>
+            </div>
+
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+              <div class="font-semibold text-white/90">4) دکمه WebApp در ربات (Python)</div>
+              <pre class="mono text-xs mt-3 whitespace-pre-wrap bg-black/40 p-3 rounded-xl border border-white/10"># Pyrogram example: send WebApp button
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+
+WEBAPP_URL = "https://YOUR-HTTPS-DOMAIN/index.html"
+
+keyboard = InlineKeyboardMarkup([
+  [InlineKeyboardButton("🎛 Admin Panel", web_app=WebAppInfo(url=WEBAPP_URL))]
+])
+
+await bot.send_message(ADMIN_ID, "Open admin panel:", reply_markup=keyboard)</pre>
+              <div class="text-xs text-white/55 mt-2">نکته: URL باید HTTPS باشد و در BotFather هم دامنه WebApp مجاز شده باشد.</div>
+            </div>
+
+            <div class="p-4 rounded-2xl border border-white/10 bg-white/5">
+              <div class="font-semibold text-white/90">5) راه‌اندازی در Termux + Cloudflare Tunnel (مرحله‌به‌مرحله)</div>
+              <pre class="mono text-xs mt-3 whitespace-pre-wrap bg-black/40 p-3 rounded-xl border border-white/10"># Termux steps
+pkg update -y && pkg upgrade -y
+pkg install python git -y
+pip install fastapi uvicorn
+
+# Run backend (example)
+uvicorn app:app --host 127.0.0.1 --port 8000
+
+# Host frontend (simple) — better: serve via backend static
+python -m http.server 8080 --bind 127.0.0.1
+
+# Install cloudflared
+pkg install cloudflared -y
+
+# Expose frontend (HTTPS URL)
+cloudflared tunnel --url http://127.0.0.1:8080
+
+# Expose backend (another tunnel) OR serve WebApp + API from same FastAPI
+cloudflared tunnel --url http://127.0.0.1:8000
+
+# Use generated https://....trycloudflare.com URL in WEBAPP_URL</pre>
+              <div class="text-xs text-white/55 mt-2 leading-6">
+                پیشنهاد حرفه‌ای: WebApp و API را روی یک FastAPI سرو کنید تا فقط یک دامنه لازم باشد.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer note -->
+    <footer class="mt-6 text-xs text-white/45 leading-6">
+      <div class="text-center">
+        ساخته شده برای مدیریت امن ربات — فقط ادمین. (بدون نمایش Bot Token در Frontend)
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <div class="glass p-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div id="toastTitle" class="font-semibold text-sm">—</div>
+          <div id="toastMsg" class="text-xs text-white/70 mt-1 leading-6">—</div>
+        </div>
+        <button id="toastClose" class="btn px-3 py-1.5 text-xs">بستن</button>
+      </div>
     </div>
+  </div>
 
-    <div id="debug"></div>
+<script>
+(() => {
+  // ─────────────────────────────────────────────────────────────
+  // Config
+  // ─────────────────────────────────────────────────────────────
+  const ADMIN_ID = 8430491374; // hardcoded as requested
+  const DEFAULT_TOGGLES = {
+    messenger_enabled: true,
+    downloader_enabled: true,
+    uploader_enabled: true,
+    maintenance_mode: false,
+    auto_reply_enabled: false,
+  };
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // تمام صفحه شدن
+  // ─────────────────────────────────────────────────────────────
+  // Telegram WebApp init
+  // ─────────────────────────────────────────────────────────────
+  const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  const isTelegram = !!tg;
 
-        // 1. خواندن تنظیمات از آدرس لینک (URL Parameters)
-        // این بخش حیاتی است: اطلاعات را از لینکی که پایتون ساخته می‌خواند
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // تابع کمکی برای تنظیم تیک‌ها
-        function setToggle(id) {
-            const val = urlParams.get(id);
-            if (val === '1' || val === 'true') {
-                document.getElementById(id).checked = true;
-            } else {
-                document.getElementById(id).checked = false;
-            }
+  // Allow limited debug only for layout testing; still admin-only.
+  const urlParams = new URLSearchParams(location.search);
+  const debug = urlParams.get('debug') === '1';
+  const debugUid = Number(urlParams.get('uid') || '0');
+
+  const initData = isTelegram ? (tg.initData || '') : '';
+  const initUnsafe = isTelegram ? (tg.initDataUnsafe || {}) : {};
+  const tgUser = initUnsafe.user || null;
+
+  const effectiveUser = (isTelegram && tgUser) ? tgUser : (debug ? { id: debugUid || 0, username: 'debug', first_name: 'Debug' } : null);
+  const uid = effectiveUser ? Number(effectiveUser.id) : 0;
+
+  // Basic UI elements
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  $('#adminIdLabel').textContent = String(ADMIN_ID);
+
+  // Telegram webapp niceties
+  if (isTelegram) {
+    try {
+      tg.ready();
+      tg.expand();
+      tg.setHeaderColor('secondary_bg_color');
+      tg.enableClosingConfirmation();
+    } catch (_) {}
+  } else {
+    $('#envBadge').classList.remove('hidden');
+    $('#envBadge').textContent = debug ? 'Debug (outside Telegram)' : 'Not in Telegram';
+  }
+
+  // Gate access
+  const isAdmin = uid === ADMIN_ID;
+
+  if (!effectiveUser || !isAdmin) {
+    $('#accessDenied').classList.remove('hidden');
+    $('#deniedUid').textContent = effectiveUser ? String(uid) : 'N/A';
+    $('#app').classList.add('hidden');
+  } else {
+    $('#accessDenied').classList.add('hidden');
+    $('#app').classList.remove('hidden');
+  }
+
+  // Controls
+  $('#btnClose').addEventListener('click', () => {
+    if (isTelegram) {
+      tg.close();
+    } else {
+      showToast('Close', 'این صفحه باید داخل تلگرام باز شود.', 'warn');
+    }
+  });
+  $('#btnHowItWorks').addEventListener('click', () => switchTab('docs'));
+  $('#btnCloseWebApp').addEventListener('click', () => isTelegram ? tg.close() : window.close());
+
+  // initData preview (admin only)
+  $('#initDataPreview').textContent = initData ? initData.slice(0, 800) + (initData.length > 800 ? '…' : '') : '(empty)';
+
+  // ─────────────────────────────────────────────────────────────
+  // API helpers
+  // ─────────────────────────────────────────────────────────────
+  function getApiBase(){
+    const saved = localStorage.getItem('apiBase') || '';
+    return saved.trim().replace(/\/$/, '');
+  }
+
+  function apiUrl(path){
+    const base = getApiBase();
+    if (!path.startsWith('/')) path = '/' + path;
+    return base ? (base + path) : path;
+  }
+
+  async function apiFetch(path, options = {}){
+    if (!isAdmin) throw new Error('Access denied');
+
+    const headers = new Headers(options.headers || {});
+    // send initData as header for GETs too
+    if (initData) headers.set('X-Tg-Init-Data', initData);
+    headers.set('Accept', 'application/json');
+
+    const method = (options.method || 'GET').toUpperCase();
+    const isJsonBody = options.body && typeof options.body === 'object' && !(options.body instanceof FormData);
+
+    if (isJsonBody) {
+      headers.set('Content-Type', 'application/json');
+      options.body = JSON.stringify(options.body);
+    }
+
+    options.method = method;
+    options.headers = headers;
+
+    const res = await fetch(apiUrl(path), options);
+    const text = await res.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+
+    if (!res.ok) {
+      const msg = (data && (data.detail || data.error || data.message)) ? (data.detail || data.error || data.message) : `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Toast
+  // ─────────────────────────────────────────────────────────────
+  function showToast(title, msg, type = 'ok'){
+    const t = $('#toast');
+    $('#toastTitle').textContent = title;
+    $('#toastMsg').textContent = msg;
+    t.classList.add('show');
+
+    const box = t.querySelector('.glass');
+    box.style.borderColor = type === 'err' ? 'rgba(239,68,68,0.45)'
+      : type === 'warn' ? 'rgba(245,158,11,0.45)'
+      : 'rgba(34,197,94,0.40)';
+  }
+  $('#toastClose').addEventListener('click', () => $('#toast').classList.remove('show'));
+
+  // ─────────────────────────────────────────────────────────────
+  // Tabs
+  // ─────────────────────────────────────────────────────────────
+  function switchTab(name){
+    $$('[role="tab"]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    $$('[data-panel]').forEach(p => {
+      p.classList.toggle('hidden', p.dataset.panel !== name);
+    });
+    if (name === 'docs') {
+      // nothing
+    }
+  }
+  $$('[role="tab"]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  $('#btnOpenDocs').addEventListener('click', () => switchTab('docs'));
+
+  // ─────────────────────────────────────────────────────────────
+  // API base input
+  // ─────────────────────────────────────────────────────────────
+  $('#apiBase').value = localStorage.getItem('apiBase') || '';
+  $('#btnSaveApiBase').addEventListener('click', () => {
+    localStorage.setItem('apiBase', ($('#apiBase').value || '').trim());
+    showToast('Saved', 'API Base ذخیره شد.', 'ok');
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Status
+  // ─────────────────────────────────────────────────────────────
+  async function loadStatus(){
+    $('#statusText').textContent = 'در حال دریافت...';
+    try {
+      const data = await apiFetch('/status');
+      const online = !!(data && (data.online ?? data.is_online ?? data.ok));
+      $('#statusDot').style.background = online ? 'rgba(34,197,94,0.95)' : 'rgba(239,68,68,0.95)';
+      $('#statusText').textContent = online ? 'Online' : 'Offline';
+
+      const meta = [];
+      if (data && data.bot_username) meta.push(`@${data.bot_username}`);
+      if (data && data.uptime) meta.push(`Uptime: ${data.uptime}`);
+      if (data && data.time) meta.push(`Time: ${data.time}`);
+      $('#statusMeta').textContent = meta.join(' • ');
+
+      showToast('Status', 'وضعیت بروزرسانی شد.', 'ok');
+    } catch (e) {
+      $('#statusDot').style.background = 'rgba(255,255,255,0.22)';
+      $('#statusText').textContent = 'خطا';
+      $('#statusMeta').textContent = String(e.message || e);
+      showToast('Error', `خطا در دریافت وضعیت: ${e.message}`, 'err');
+    }
+  }
+  $('#btnRefreshStatus').addEventListener('click', loadStatus);
+
+  // Ping
+  $('#btnPing').addEventListener('click', async () => {
+    try {
+      await apiFetch('/status');
+      showToast('Ping', 'API در دسترس است.', 'ok');
+    } catch (e) {
+      showToast('Ping Failed', e.message, 'err');
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Toggles
+  // ─────────────────────────────────────────────────────────────
+  let togglesState = structuredClone(DEFAULT_TOGGLES);
+
+  const togglesSchema = [
+    { key: 'messenger_enabled', label: 'پیام‌رسان', desc: 'فعال/غیرفعال کردن بخش پیام‌رسان' },
+    { key: 'downloader_enabled', label: 'دانلودر', desc: 'فعال/غیرفعال کردن دانلودر لینک‌ها' },
+    { key: 'uploader_enabled', label: 'آپلودر', desc: 'فعال/غیرفعال کردن ذخیره فایل در Storage Channel' },
+    { key: 'maintenance_mode', label: 'حالت تعمیر', desc: 'غیرفعال کردن قابلیت‌ها برای کاربران (ادمین مستثنی)' },
+    { key: 'auto_reply_enabled', label: 'پاسخ خودکار', desc: 'فعال/غیرفعال کردن پاسخ خودکار پیام‌رسان' },
+  ];
+
+  function renderToggles(){
+    const root = $('#toggleList');
+    root.innerHTML = '';
+
+    for (const t of togglesSchema) {
+      const on = !!togglesState[t.key];
+      const row = document.createElement('div');
+      row.className = 'p-3 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-between gap-3';
+      row.innerHTML = `
+        <div class="min-w-0">
+          <div class="font-semibold text-sm text-white/90">${t.label}</div>
+          <div class="text-xs text-white/55 mt-1 leading-6">${t.desc}</div>
+        </div>
+        <div class="toggle" role="switch" tabindex="0" aria-label="${t.label}" data-key="${t.key}" data-on="${on}"></div>
+      `;
+      root.appendChild(row);
+    }
+
+    $$('.toggle').forEach(el => {
+      const toggle = () => {
+        const key = el.dataset.key;
+        togglesState[key] = !togglesState[key];
+        el.dataset.on = String(!!togglesState[key]);
+      };
+      el.addEventListener('click', toggle);
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
         }
+      });
+    });
+  }
 
-        // اعمال تنظیمات اولیه
-        setToggle('userbot_active');
-        setToggle('maintenance_mode');
-        setToggle('silent_mode');
-
-        // نمایش اطلاعات برای دیباگ (که بفهمیم لینک چی بوده)
-        document.getElementById('debug').innerText = "Link Data: " + window.location.search;
-
-        // 2. ارسال تغییرات به ربات
-        function sendUpdate(key, value) {
-            const data = {
-                action: "update_setting",
-                key: key,
-                value: value
-            };
-            tg.sendData(JSON.stringify(data));
+  async function loadToggles(){
+    try {
+      const data = await apiFetch('/settings');
+      if (data && typeof data === 'object') {
+        for (const t of togglesSchema) {
+          if (t.key in data) togglesState[t.key] = !!data[t.key];
         }
+      }
+      renderToggles();
+      showToast('Settings', 'تنظیمات بارگذاری شد.', 'ok');
+    } catch (e) {
+      renderToggles();
+      showToast('Error', `خطا در بارگذاری تنظیمات: ${e.message}`, 'err');
+    }
+  }
 
-        function sendAction(actionName) {
-            const data = {
-                action: "command",
-                key: actionName
-            };
-            tg.sendData(JSON.stringify(data));
+  $('#btnLoadSettings').addEventListener('click', loadToggles);
+  $('#btnResetToggles').addEventListener('click', () => {
+    togglesState = structuredClone(DEFAULT_TOGGLES);
+    renderToggles();
+    showToast('Reset', 'بازنشانی شد (محلی).', 'warn');
+  });
+
+  $('#btnSaveToggles').addEventListener('click', async () => {
+    try {
+      await apiFetch('/settings', {
+        method: 'POST',
+        body: {
+          initData,
+          settings: togglesState
         }
-    </script>
+      });
+      showToast('Saved', 'تغییرات ذخیره شد.', 'ok');
+    } catch (e) {
+      showToast('Error', `ذخیره ناموفق: ${e.message}`, 'err');
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Bot settings
+  // ─────────────────────────────────────────────────────────────
+  $('#btnLoadBotSettings').addEventListener('click', async () => {
+    try {
+      const data = await apiFetch('/settings');
+      $('#welcomeMessage').value = data.welcome_message ?? '';
+      $('#defaultDaily').value = data.default_daily_limit ?? '';
+      $('#defaultSize').value = data.default_size_limit_mb ?? '';
+      showToast('Loaded', 'تنظیمات بارگذاری شد.', 'ok');
+    } catch (e) {
+      showToast('Error', e.message, 'err');
+    }
+  });
+
+  $('#btnSaveBotSettings').addEventListener('click', async () => {
+    try {
+      const settings = {
+        welcome_message: $('#welcomeMessage').value,
+        default_daily_limit: Number($('#defaultDaily').value || 0),
+        default_size_limit_mb: Number($('#defaultSize').value || 0)
+      };
+      await apiFetch('/settings', {
+        method: 'POST',
+        body: { initData, settings }
+      });
+      showToast('Saved', 'تنظیمات ذخیره شد.', 'ok');
+    } catch (e) {
+      showToast('Error', `ذخیره ناموفق: ${e.message}`, 'err');
+    }
+  });
+
+  $('#btnResetPassword').addEventListener('click', async () => {
+    const pass = $('#newPassword').value || '';
+    if (pass.length < 4) {
+      showToast('Validation', 'حداقل ۴ کاراکتر', 'warn');
+      return;
+    }
+    try {
+      await apiFetch('/settings', {
+        method: 'POST',
+        body: { initData, settings: { password: pass } }
+      });
+      $('#newPassword').value = '';
+      showToast('Password', 'رمز بروزرسانی شد.', 'ok');
+    } catch (e) {
+      showToast('Error', `خطا: ${e.message}`, 'err');
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Users
+  // ─────────────────────────────────────────────────────────────
+  let usersCache = [];
+
+  function renderUsers(list){
+    const root = $('#usersList');
+    root.innerHTML = '';
+
+    if (!list || !list.length) {
+      root.innerHTML = `<div class="p-3 rounded-2xl border border-white/10 bg-white/5 text-sm text-white/70">کاربری یافت نشد.</div>`;
+      return;
+    }
+
+    for (const u of list) {
+      const name = `${u.first_name || ''} ${u.last_name || ''}`.trim() || '—';
+      const uname = u.username ? '@' + u.username : '—';
+      const uid = u.user_id;
+
+      const flags = [];
+      if (u.is_authorized) flags.push('✅ authorized');
+      if (u.is_blocked) flags.push('🚫 blocked');
+      const fl = flags.length ? flags.join(' • ') : '—';
+
+      const row = document.createElement('div');
+      row.className = 'p-3 rounded-2xl border border-white/10 bg-white/5';
+      row.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-semibold text-sm text-white/90">${escapeHtml(name)}</div>
+            <div class="text-xs text-white/60 mt-1 mono">${uid} • ${escapeHtml(uname)}</div>
+            <div class="text-xs text-white/50 mt-1">${escapeHtml(fl)}</div>
+          </div>
+          <div class="flex gap-2">
+            ${u.is_blocked ? `<button class="btn btn-success px-3 py-2 text-xs" data-act="unblock" data-uid="${uid}">Unblock</button>`
+                           : `<button class="btn btn-warn px-3 py-2 text-xs" data-act="block" data-uid="${uid}">Block</button>`}
+            <button class="btn btn-danger px-3 py-2 text-xs" data-act="delete" data-uid="${uid}">Delete</button>
+          </div>
+        </div>
+      `;
+      root.appendChild(row);
+    }
+
+    root.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const act = btn.dataset.act;
+        const uid = Number(btn.dataset.uid);
+        try {
+          if (act === 'block') {
+            await apiFetch('/users/block', { method: 'POST', body: { initData, user_id: uid } });
+            showToast('User', `بلاک شد: ${uid}`, 'ok');
+          } else if (act === 'unblock') {
+            await apiFetch('/users/unblock', { method: 'POST', body: { initData, user_id: uid } });
+            showToast('User', `آنبلاک شد: ${uid}`, 'ok');
+          } else if (act === 'delete') {
+            await apiFetch('/users/delete', { method: 'POST', body: { initData, user_id: uid } });
+            showToast('User', `حذف شد: ${uid}`, 'warn');
+          }
+          await loadUsers();
+        } catch (e) {
+          showToast('Error', e.message, 'err');
+        }
+      });
+    });
+  }
+
+  function applySearch(){
+    const q = ($('#userSearch').value || '').trim().toLowerCase();
+    if (!q) {
+      renderUsers(usersCache);
+      return;
+    }
+    const filtered = usersCache.filter(u => {
+      const uid = String(u.user_id || '');
+      const un = String(u.username || '').toLowerCase();
+      const fn = String(u.first_name || '').toLowerCase();
+      const ln = String(u.last_name || '').toLowerCase();
+      return uid.includes(q) || un.includes(q) || fn.includes(q) || ln.includes(q);
+    });
+    renderUsers(filtered);
+  }
+
+  async function loadUsers(){
+    try {
+      const data = await apiFetch('/users');
+      usersCache = Array.isArray(data) ? data : (data.users || []);
+      applySearch();
+      showToast('Users', 'لیست کاربران بروزرسانی شد.', 'ok');
+    } catch (e) {
+      showToast('Error', `خطا در دریافت کاربران: ${e.message}`, 'err');
+    }
+  }
+
+  $('#btnLoadUsers').addEventListener('click', loadUsers);
+  $('#btnRefreshUsers').addEventListener('click', loadUsers);
+  $('#userSearch').addEventListener('input', applySearch);
+  $('#btnClearSearch').addEventListener('click', () => { $('#userSearch').value = ''; applySearch(); });
+
+  // ─────────────────────────────────────────────────────────────
+  // Docs copy
+  // ─────────────────────────────────────────────────────────────
+  $('#btnCopyDocs').addEventListener('click', async () => {
+    const text = document.getElementById('docsText').innerText;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Copied', 'راهنما کپی شد.', 'ok');
+    } catch (e) {
+      showToast('Copy failed', 'مرورگر اجازه کپی نداد.', 'err');
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────
+  // Utilities
+  // ─────────────────────────────────────────────────────────────
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Boot
+  // ─────────────────────────────────────────────────────────────
+  renderToggles();
+  if (isAdmin) {
+    // try load status & settings on boot
+    loadStatus();
+    loadToggles();
+  }
+
+})();
+</script>
 </body>
 </html>
